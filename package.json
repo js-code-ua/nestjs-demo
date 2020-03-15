@@ -21,6 +21,7 @@
     "compose": "docker-compose up"
   },
   "dependencies": {
+    "@hapi/joi": "^17.1.0",
     "@nestjs/common": "^6.7.2",
     "@nestjs/config": "^0.0.9",
     "@nestjs/core": "^6.7.2",
@@ -49,6 +50,7 @@
     "@nestjs/testing": "^6.7.1",
     "@types/bcrypt": "^3.0.0",
     "@types/express": "^4.17.1",
+    "@types/hapi__joi": "^16.0.12",
     "@types/jest": "^24.0.18",
     "@types/lodash": "^4.14.149",
     "@types/mailgun-js": "^0.22.3",
