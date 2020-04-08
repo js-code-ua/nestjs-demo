@@ -1,6 +1,5 @@
 import { IsEmail, IsString, IsNotEmpty, Matches, IsOptional, IsEnum } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IAddress } from "../interfaces/address.interface";
 import { CreateAddressDto } from './create-address.dto';
 import { genderEnum } from '../enums/gender.enum';
 
@@ -21,7 +20,7 @@ export class CreateUserDto {
     @IsString()
     @IsNotEmpty()
     readonly lastName: string;
-    
+
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
@@ -34,18 +33,18 @@ export class CreateUserDto {
 
     @ApiProperty()
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     readonly profession: string;
 
     readonly searchField: string;
 
     @ApiProperty()
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     readonly phone: string;
 
-    readonly roles: Array<string>;
-    
+    readonly roles: string[];
+
     @IsString()
     @IsNotEmpty()
     @Matches(
