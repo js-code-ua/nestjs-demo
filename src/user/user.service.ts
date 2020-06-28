@@ -19,7 +19,7 @@ export class UserService {
         return await bcrypt.hash(password, salt);
     }
 
-    async create(createUserDto: CreateUserDto, roles: Array<string>): Promise<IUser> {
+    async create(createUserDto: CreateUserDto, roles: string[]): Promise<IUser> {
         const hash = await this.hashPassword(createUserDto.password);
         const createdUser = new this.userModel(_.assignIn(createUserDto, { password: hash, roles }));
         return await createdUser.save();
@@ -33,7 +33,7 @@ export class UserService {
         return await this.userModel.findOne({ email }).exec();
     }
 
-    async update(_id: string, payload: Partial<IUser>) {
-        return await this.userModel.updateOne({ _id }, payload);
+    async update(id: string, payload: Partial<IUser>) {
+        return this.userModel.updateOne({_id: id}, payload);
     }
 }

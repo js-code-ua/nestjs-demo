@@ -19,6 +19,7 @@ import { ITokenPayload } from './interfaces/token-payload.interface';
 import { IReadableUser } from 'src/user/interfaces/readable-user.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { userSensitiveFieldsEnum } from 'src/user/enums/protected-fields.enum';
+import {ForgotPasswordDto} from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -44,25 +45,7 @@ export class AuthService {
         const user = await this.userService.findByEmail(email);
 
         if (user && (await bcrypt.compare(password, user.password))) {
-            if (user.status !== statusEnum.active) {
-                throw new MethodNotAllowedException();
-            }
-            const tokenPayload: ITokenPayload = {
-                _id: user._id,
-                status: user.status,
-                roles: user.roles,
-            };
-            const token = await this.generateToken(tokenPayload);
-            const expireAt = moment()
-                .add(1, 'day')
-                .toISOString();
-
-            await this.saveToken({
-                token,
-                expireAt,
-                uId: user._id,
-            });
-
+            const token = await this.signUser(user);
             const readableUser = user.toObject() as IReadableUser;
             readableUser.accessToken = token;
 
@@ -71,11 +54,34 @@ export class AuthService {
         throw new BadRequestException('Invalid credentials');
     }
 
-    async changePassword(changePasswordDto: ChangePasswordDto): Promise<boolean> {
+    async signUser(user: IUser, withStatusCheck: boolean = true): Promise<string> {
+        if (withStatusCheck && (user.status !== statusEnum.active)) {
+            throw new MethodNotAllowedException();
+        }
+        const tokenPayload: ITokenPayload = {
+            _id: user._id,
+            status: user.status,
+            roles: user.roles,
+        };
+        const token = await this.generateToken(tokenPayload);
+        const expireAt = moment()
+            .add(1, 'day')
+            .toISOString();
+
+        await this.saveToken({
+            token,
+            expireAt,
+            uId: user._id,
+        });
+
+        return token;
+    }
+
+    async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<boolean> {
         const password = await this.userService.hashPassword(changePasswordDto.password);
 
-        await this.userService.update(changePasswordDto._id, { password });
-        await this.tokenService.deleteAll(changePasswordDto._id);
+        await this.userService.update(userId, { password });
+        await this.tokenService.deleteAll(userId);
         return true;
     }
 
@@ -93,20 +99,9 @@ export class AuthService {
     }
 
     async sendConfirmation(user: IUser) {
-        const expiresIn = 60 * 60 * 24; // 24 hours
-        const tokenPayload = {
-            _id: user._id,
-            status: user.status,
-            roles: user.roles,
-        };
-        const expireAt = moment()
-            .add(1, 'day')
-            .toISOString();
-
-        const token = await this.generateToken(tokenPayload, { expiresIn });
+        const token = await this.signUser(user, false);
         const confirmLink = `${this.clientAppUrl}/auth/confirm?token=${token}`;
 
-        await this.saveToken({ token, uId: user._id, expireAt });
         await this.mailService.send({
             from: this.configService.get<string>('JS_CODE_MAIL'),
             to: user.email,
@@ -140,5 +135,24 @@ export class AuthService {
         const userToken = await this.tokenService.create(createUserTokenDto);
 
         return userToken;
+    }
+
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+        const user = await this.userService.findByEmail(forgotPasswordDto.email);
+        if (!user) {
+            throw new BadRequestException('Invalid email');
+        }
+        const token = await this.signUser(user);
+        const forgotLink = `${this.clientAppUrl}/auth/forgotPassword?token=${token}`;
+
+        await this.mailService.send({
+            from: this.configService.get<string>('JS_CODE_MAIL'),
+            to: user.email,
+            subject: 'Forgot Password',
+            html: `
+                <h3>Hello ${user.firstName}!</h3>
+                <p>Please use this <a href="${forgotLink}">link</a> to reset your password.</p>
+            `,
+        });
     }
 }
