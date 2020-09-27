@@ -1,25 +1,26 @@
-import { Injectable, UnauthorizedException, BadRequestException, MethodNotAllowedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import {BadRequestException, Injectable, MethodNotAllowedException, UnauthorizedException} from '@nestjs/common';
+import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { UserService } from 'src/user/user.service';
-import { TokenService } from 'src/token/token.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { SignOptions } from 'jsonwebtoken';
-import { CreateUserTokenDto } from 'src/token/dto/create-user-token.dto';
-import { roleEnum } from 'src/user/enums/role.enum';
-import { IUser } from 'src/user/interfaces/user.interface';
-import { ConfigService } from '@nestjs/config';
-import { MailService } from 'src/mail/mail.service';
-import { statusEnum } from 'src/user/enums/status.enum';
-import { SignInDto } from './dto/signin.dto';
-import { ITokenPayload } from './interfaces/token-payload.interface';
-import { IReadableUser } from 'src/user/interfaces/readable-user.interface';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { userSensitiveFieldsEnum } from 'src/user/enums/protected-fields.enum';
+import {UserService} from 'src/user/user.service';
+import {TokenService} from 'src/token/token.service';
+import {CreateUserDto} from 'src/user/dto/create-user.dto';
+import {SignOptions} from 'jsonwebtoken';
+import {CreateUserTokenDto} from 'src/token/dto/create-user-token.dto';
+import {roleEnum} from 'src/user/enums/role.enum';
+import {IUser} from 'src/user/interfaces/user.interface';
+import {ConfigService} from '@nestjs/config';
+import {MailService} from 'src/mail/mail.service';
+import {statusEnum} from 'src/user/enums/status.enum';
+import {SignInDto} from './dto/signin.dto';
+import {ITokenPayload} from './interfaces/token-payload.interface';
+import {IReadableUser} from 'src/user/interfaces/readable-user.interface';
+import {ChangePasswordDto} from './dto/change-password.dto';
+import {userSensitiveFieldsEnum} from 'src/user/enums/protected-fields.enum';
 import {ForgotPasswordDto} from './dto/forgot-password.dto';
+import {IUserToken} from '../token/interfaces/user-token.interface';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +42,7 @@ export class AuthService {
         return true;
     }
 
-    async signIn({ email, password }: SignInDto): Promise<IReadableUser> {
+    async signIn({email, password}: SignInDto): Promise<IReadableUser> {
         const user = await this.userService.findByEmail(email);
 
         if (user && (await bcrypt.compare(password, user.password))) {
@@ -80,7 +81,7 @@ export class AuthService {
     async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<boolean> {
         const password = await this.userService.hashPassword(changePasswordDto.password);
 
-        await this.userService.update(userId, { password });
+        await this.userService.update(userId, {password});
         await this.tokenService.deleteAll(userId);
         return true;
     }
@@ -118,23 +119,17 @@ export class AuthService {
     }
 
     private async verifyToken(token): Promise<any> {
-        try {
-            const data = this.jwtService.verify(token) as ITokenPayload;
-            const tokenExists = await this.tokenService.exists(data._id, token);
+        const data = this.jwtService.verify(token) as ITokenPayload;
+        const tokenExists = await this.tokenService.exists(data._id, token);
 
-            if (tokenExists) {
-                return data;
-            }
-            throw new UnauthorizedException();
-        } catch (error) {
-            throw new UnauthorizedException();
+        if (tokenExists) {
+            return data;
         }
+        throw new UnauthorizedException();
     }
 
-    private async saveToken(createUserTokenDto: CreateUserTokenDto) {
-        const userToken = await this.tokenService.create(createUserTokenDto);
-
-        return userToken;
+    private saveToken(createUserTokenDto: CreateUserTokenDto): Promise<IUserToken> {
+        return this.tokenService.create(createUserTokenDto);
     }
 
     async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {

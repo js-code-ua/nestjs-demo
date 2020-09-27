@@ -11,6 +11,6 @@ export interface IReadableUser {
     readonly address: IAddress;
     readonly profession: string;
     readonly phone: string;
-    readonly roles: Array<string>;
+    readonly roles: string[];
     accessToken?: string;
 }

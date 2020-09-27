@@ -6,10 +6,10 @@ import { ConfirmAccountDto } from './dto/confirm-account.dto';
 import { SignInDto } from './dto/signin.dto';
 import { IReadableUser } from 'src/user/interfaces/readable-user.interface';
 import {ForgotPasswordDto} from './dto/forgot-password.dto';
-import {AuthGuard} from "@nestjs/passport";
-import {GetUser} from "../components/decorators/get-user.decorator";
-import {IUser} from "../user/interfaces/user.interface";
-import {ChangePasswordDto} from "./dto/change-password.dto";
+import {AuthGuard} from '@nestjs/passport';
+import {GetUser} from '../components/decorators/get-user.decorator';
+import {IUser} from '../user/interfaces/user.interface';
+import {ChangePasswordDto} from './dto/change-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')

@@ -13,6 +13,6 @@ export interface IUser extends Document {
     readonly profession: string;
     readonly searchField: string;
     readonly phone: string;
-    readonly roles: Array<string>;
+    readonly roles: string[];
     readonly password: string;
 }

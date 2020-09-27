@@ -18,8 +18,8 @@ import { MailModule } from './mail/mail.module';
       process.env.MONGODB_WRITE_CONNECTION_STRING,
       {
         useNewUrlParser: true,
-        useUnifiedTopology: true
-      }
+        useUnifiedTopology: true,
+      },
     ),
     TokenModule,
     MailModule,

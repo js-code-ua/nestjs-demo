@@ -16,7 +16,7 @@ export class MailService {
 
     send(data: IMailGunData): Promise<Mailgun.messages.SendResponse> {
         return new Promise((res, rej) => {
-            this.mg.messages().send(data, function (error, body) {
+            this.mg.messages().send(data, function(error, body) {
                 if (error) {
                     rej(error);
                 }
